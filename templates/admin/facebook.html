@@ -1,0 +1,28 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
+<h1 class="text-2xl font-bold mb-6">Theo dõi Trang Facebook</h1>
+<form method="post" action="{{ url_for('add_facebook_page') }}" class="bg-white p-6 rounded shadow mb-6 max-w-lg space-y-3">
+    <h2 class="font-semibold">Thêm trang mới</h2>
+    <input type="text" name="name" placeholder="Tên trang" required class="w-full border rounded px-3 py-2">
+    <input type="text" name="page_id" placeholder="Page ID (số)" required class="w-full border rounded px-3 py-2">
+    <input type="text" name="access_token" placeholder="Page Access Token" class="w-full border rounded px-3 py-2">
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Thêm trang</button>
+    <p class="text-xs text-gray-500">Cần token hợp lệ từ Facebook Graph API. Không hỗ trợ nhóm riêng tư hoặc vượt hạn chế.</p>
+</form>
+
+<table class="w-full bg-white rounded shadow">
+    <thead><tr class="bg-gray-50"><th class="p-3 text-left">Tên</th><th>Page ID</th><th>Lần kiểm tra</th><th>Hành động</th></tr></thead>
+    <tbody>
+        {% for page in pages %}
+        <tr class="border-t">
+            <td class="p-3">{{ page.name }}</td>
+            <td class="p-3 text-sm">{{ page.page_id }}</td>
+            <td class="p-3 text-sm">{{ page.last_checked.strftime('%d/%m %H:%M') if page.last_checked else 'Chưa' }}</td>
+            <td class="p-3"><a href="{{ url_for('delete_facebook_page', page_id=page.id) }}" class="text-red-600" onclick="return confirm('Xóa?')">Xóa</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="p-4 text-center text-gray-500">Chưa có trang nào.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

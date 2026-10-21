@@ -1,0 +1,38 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Quản lý bài viết</h1>
+    <div class="space-x-2">
+        <a href="?status=pending" class="px-3 py-1 bg-yellow-100 rounded">Chờ duyệt</a>
+        <a href="?status=published" class="px-3 py-1 bg-green-100 rounded">Đã đăng</a>
+        <a href="?status=all" class="px-3 py-1 bg-gray-100 rounded">Tất cả</a>
+    </div>
+</div>
+<table class="w-full bg-white rounded shadow">
+    <thead class="bg-gray-50">
+        <tr>
+            <th class="p-3 text-left">Tiêu đề</th>
+            <th class="p-3">Trạng thái</th>
+            <th class="p-3">Ngày tạo</th>
+            <th class="p-3">Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for post in posts %}
+        <tr class="border-t">
+            <td class="p-3">{{ post.title }}</td>
+            <td class="p-3 text-center">
+                <span class="px-2 py-1 rounded text-xs {{ 'bg-yellow-200' if post.status=='pending' else 'bg-green-200' }}">{{ post.status }}</span>
+            </td>
+            <td class="p-3 text-sm">{{ post.created_at.strftime('%d/%m/%Y') }}</td>
+            <td class="p-3 space-x-2">
+                <a href="{{ url_for('edit_post', post_id=post.id) }}" class="text-blue-600">Sửa</a>
+                {% if post.status == 'pending' %}
+                <a href="{{ url_for('approve_post', post_id=post.id) }}" class="text-green-600">Duyệt</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

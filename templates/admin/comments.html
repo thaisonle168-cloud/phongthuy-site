@@ -1,0 +1,23 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
+<h1 class="text-2xl font-bold mb-6">Bình luận chờ duyệt</h1>
+<table class="w-full bg-white rounded shadow">
+    <thead><tr class="bg-gray-50"><th class="p-3 text-left">Bài viết</th><th>Tác giả</th><th>Nội dung</th><th>Hành động</th></tr></thead>
+    <tbody>
+        {% for c in comments %}
+        <tr class="border-t">
+            <td class="p-3 text-sm">{{ c.post.title[:40] if c.post else '' }}</td>
+            <td class="p-3">{{ c.author_name }}</td>
+            <td class="p-3 text-sm">{{ c.content[:80] }}</td>
+            <td class="p-3">
+                {% if not c.is_approved %}
+                <a href="{{ url_for('approve_comment', comment_id=c.id) }}" class="text-green-600">Duyệt</a>
+                {% else %}
+                <span class="text-gray-500">Đã duyệt</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

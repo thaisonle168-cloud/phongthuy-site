@@ -1,0 +1,18 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
+<h1 class="text-3xl font-bold mb-6">Tổng quan</h1>
+<div class="grid md:grid-cols-3 gap-6">
+    <div class="bg-white p-6 rounded shadow">
+        <p class="text-gray-500">Bài chờ duyệt</p>
+        <p class="text-3xl font-bold text-yellow-600">{{ pending }}</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+        <p class="text-gray-500">Đã đăng</p>
+        <p class="text-3xl font-bold text-green-600">{{ published }}</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+        <p class="text-gray-500">Trang Facebook</p>
+        <p class="text-3xl font-bold">{{ fb_pages }}</p>
+    </div>
+</div>
+{% endblock %}

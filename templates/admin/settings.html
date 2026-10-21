@@ -1,0 +1,33 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
+<h1 class="text-2xl font-bold mb-6">Cài đặt</h1>
+<form method="post" class="bg-white p-6 rounded shadow space-y-4 max-w-md">
+    <div>
+        <label class="flex items-center">
+            <input type="checkbox" name="auto_publish" {% if auto_publish %}checked{% endif %} class="mr-2">
+            Tự động đăng bài sau khi tạo (không cần duyệt)
+        </label>
+    </div>
+    <div>
+        <label class="block">Giờ tạo bài hàng ngày (0-23)</label>
+        <input type="number" name="daily_post_hour" value="{{ hour }}" min="0" max="23" class="w-full border rounded px-3 py-2">
+    </div>
+    <div>
+        <label class="block">Khoảng cách kiểm tra Facebook (giờ)</label>
+        <input type="number" name="fb_check_interval_hours" value="{{ fb_interval }}" min="1" class="w-full border rounded px-3 py-2">
+    </div>
+    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded">Lưu cài đặt</button>
+</form>
+<div class="mt-8 bg-yellow-50 p-4 rounded">
+    <h2 class="font-bold">Hướng dẫn Cron Job</h2>
+    <p class="mt-2 text-sm">Để hệ thống tự động tạo bài và kiểm tra Facebook, bạn cần thiết lập cron trên máy chủ:</p>
+    <pre class="bg-gray-800 text-green-400 p-3 rounded mt-2 text-xs overflow-x-auto">
+# Tạo bài hàng ngày lúc 8h sáng
+0 8 * * * cd /đường/dẫn/phongthuy_site && /đường/dẫn/venv/bin/python generate_daily.py >> /var/log/phongthuy_daily.log 2>&1
+
+# Kiểm tra Facebook mỗi 6 giờ
+0 */6 * * * cd /đường/dẫn/phongthuy_site && /đường/dẫn/venv/bin/python fb_monitor.py >> /var/log/phongthuy_fb.log 2>&1
+    </pre>
+    <p class="mt-2 text-sm text-red-600">Lưu ý: Website không tự chạy các tác vụ này nếu chưa cấu hình cron hoặc dịch vụ lập lịch trên máy chủ.</p>
+</div>
+{% endblock %}
