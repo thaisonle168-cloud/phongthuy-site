@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Phong Thủy Việt - Kiến thức phong thủy nhà ở{% endblock %}
+
+{% block content %}
+<section class="mb-10">
+    <h1 class="text-3xl font-bold mb-4">Bài viết mới nhất</h1>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for post in posts.items %}
+        <article class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition">
+            {% if post.image_url %}
+            <img src="{{ post.image_url }}" alt="{{ post.title }}" class="w-full h-48 object-cover">
+            {% endif %}
+            <div class="p-4">
+                <span class="text-xs text-green-600">{{ post.category.name if post.category else '' }}</span>
+                <h2 class="text-xl font-semibold mt-1 mb-2"><a href="{{ url_for('post_detail', slug=post.slug) }}">{{ post.title }}</a></h2>
+                <p class="text-gray-600 text-sm">{{ post.short_description }}</p>
+                <div class="mt-3 text-xs text-gray-500">{{ post.published_at.strftime('%d/%m/%Y') if post.published_at else '' }}</div>
+            </div>
+        </article>
+        {% else %}
+        <p>Chưa có bài viết nào.</p>
+        {% endfor %}
+    </div>
+    {% if posts.has_prev or posts.has_next %}
+    <div class="mt-6 flex justify-center space-x-4">
+        {% if posts.has_prev %}<a href="?page={{ posts.prev_num }}" class="px-4 py-2 bg-gray-200 rounded">Trước</a>{% endif %}
+        {% if posts.has_next %}<a href="?page={{ posts.next_num }}" class="px-4 py-2 bg-gray-200 rounded">Sau</a>{% endif %}
+    </div>
+    {% endif %}
+</section>
+
+{% if featured %}
+<section class="mb-10">
+    <h2 class="text-2xl font-bold mb-4">Bài nổi bật</h2>
+    <div class="grid md:grid-cols-3 gap-4">
+        {% for p in featured %}
+        <a href="{{ url_for('post_detail', slug=p.slug) }}" class="block bg-white p-4 rounded shadow">
+            <h3 class="font-semibold">{{ p.title }}</h3>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section>
+    <h2 class="text-2xl font-bold mb-4">Danh mục</h2>
+    <div class="flex flex-wrap gap-3">
+        {% for cat in categories %}
+        <a href="{{ url_for('category', slug=cat.slug) }}" class="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm hover:bg-green-200">{{ cat.name }}</a>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
