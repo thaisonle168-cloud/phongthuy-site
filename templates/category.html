@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }} - Phong Thủy Việt{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">{{ category.name }}</h1>
+<p class="mb-6 text-gray-600">{{ category.description }}</p>
+<div class="grid md:grid-cols-2 gap-6">
+    {% for post in posts.items %}
+    <article class="bg-white p-4 rounded shadow">
+        <h2 class="text-xl font-semibold"><a href="{{ url_for('post_detail', slug=post.slug) }}">{{ post.title }}</a></h2>
+        <p class="text-sm text-gray-600 mt-2">{{ post.short_description }}</p>
+    </article>
+    {% else %}
+    <p>Chưa có bài viết trong danh mục này.</p>
+    {% endfor %}
+</div>
+{% if posts.has_prev or posts.has_next %}
+<div class="mt-6 flex justify-center space-x-4">
+    {% if posts.has_prev %}<a href="?page={{ posts.prev_num }}" class="px-4 py-2 bg-gray-200 rounded">Trước</a>{% endif %}
+    {% if posts.has_next %}<a href="?page={{ posts.next_num }}" class="px-4 py-2 bg-gray-200 rounded">Sau</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

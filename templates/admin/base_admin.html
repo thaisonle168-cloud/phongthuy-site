@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Phong Thủy Việt</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="flex">
+        <aside class="w-64 bg-gray-800 text-white min-h-screen p-4">
+            <h2 class="text-xl font-bold mb-6">Quản trị</h2>
+            <nav class="space-y-2">
+                <a href="{{ url_for('admin_dashboard') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Tổng quan</a>
+                <a href="{{ url_for('admin_posts') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Bài viết</a>
+                <a href="{{ url_for('admin_facebook') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Facebook</a>
+                <a href="{{ url_for('admin_comments') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Bình luận</a>
+                <a href="{{ url_for('admin_settings') }}" class="block py-2 px-3 rounded hover:bg-gray-700">Cài đặt</a>
+                <a href="{{ url_for('admin_logout') }}" class="block py-2 px-3 rounded hover:bg-gray-700 text-red-400">Đăng xuất</a>
+            </nav>
+        </aside>
+        <main class="flex-1 p-8">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>
