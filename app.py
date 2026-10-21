@@ -13,11 +13,13 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 # Use absolute path or /tmp for SQLite on Render (ephemeral)
 db_path = os.environ.get('DATABASE_URL', 'sqlite:///phongthuy.db')
 if db_path.startswith('sqlite:///') and not db_path.startswith('sqlite:////'):
-    # Make relative SQLite absolute under /tmp for Render
     db_path = 'sqlite:////tmp/phongthuy.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# Secret key for cron endpoint (set in Render env vars)
+CRON_SECRET = os.environ.get('CRON_SECRET', 'phongthuy-cron-secret-change-me')
 
 db.init_app(app)
 login_manager = LoginManager()
@@ -57,6 +59,12 @@ TOPICS = [
     "Cách hóa giải phong thủy xấu đơn giản",
     "Vật phẩm phong thủy cho văn phòng",
     "Lịch âm và ngày tốt trong tháng",
+    "Phong thủy cửa chính và cửa phụ",
+    "Cây phát tài trong nhà",
+    "Màu sắc hợp mệnh theo ngũ hành",
+    "Bố trí bàn thờ trong nhà",
+    "Phong thủy phòng tắm",
+    "Cách chọn hướng nhà theo tuổi",
 ]
 
 DISCLAIMER = """
@@ -82,7 +90,7 @@ def init_db():
             Setting.set('fb_check_interval_hours', '6')
         db.session.commit()
 
-# Initialize DB on startup (important for Gunicorn/Render)
+# Initialize DB on startup
 with app.app_context():
     try:
         init_db()
@@ -142,6 +150,32 @@ Hãy áp dụng một cách linh hoạt và phù hợp với hoàn cảnh thực
     db.session.commit()
     return post
 
+def get_unused_topic():
+    used = {h.topic for h in TopicHistory.query.all()}
+    available = [t for t in TOPICS if t not in used]
+    if not available:
+        # Reset history if all used (or just pick any)
+        return TOPICS[0] if TOPICS else None
+    import random
+    return random.choice(available)
+
+def generate_daily_post():
+    """Tạo 1 bài viết mới. Trả về thông tin kết quả."""
+    with app.app_context():
+        topic = get_unused_topic()
+        if not topic:
+            return {"status": "no_topic", "message": "Không còn chủ đề"}
+        post = create_post_from_topic(topic)
+        auto = Setting.get('auto_publish', 'false') == 'true'
+        if auto:
+            post.status = 'published'
+            post.published_at = datetime.utcnow()
+            db.session.commit()
+            return {"status": "published", "title": post.title, "id": post.id}
+        else:
+            return {"status": "pending", "title": post.title, "id": post.id}
+
+# ============== PUBLIC ROUTES ==============
 @app.route('/')
 def index():
     page = request.args.get('page', 1, type=int)
@@ -195,6 +229,16 @@ def add_comment(post_id):
         flash('Bình luận của bạn đã được gửi và đang chờ kiểm duyệt.', 'success')
     return redirect(url_for('post_detail', slug=post.slug))
 
+# ============== CRON ENDPOINT (tạo bài mỗi 24h) ==============
+@app.route('/internal/generate-daily', methods=['GET', 'POST'])
+def generate_daily_endpoint():
+    key = request.args.get('key') or request.headers.get('X-Cron-Key')
+    if key != CRON_SECRET:
+        return jsonify({"error": "Unauthorized"}), 401
+    result = generate_daily_post()
+    return jsonify(result)
+
+# ============== ADMIN ROUTES ==============
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if current_user.is_authenticated:
