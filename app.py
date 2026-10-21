@@ -10,7 +10,12 @@ from models import db, User, Category, Post, TopicHistory, FacebookPage, Faceboo
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///phongthuy.db')
+# Use absolute path or /tmp for SQLite on Render (ephemeral)
+db_path = os.environ.get('DATABASE_URL', 'sqlite:///phongthuy.db')
+if db_path.startswith('sqlite:///') and not db_path.startswith('sqlite:////'):
+    # Make relative SQLite absolute under /tmp for Render
+    db_path = 'sqlite:////tmp/phongthuy.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
@@ -25,7 +30,10 @@ def load_user(user_id):
 
 @app.context_processor
 def inject_categories():
-    return dict(categories=Category.query.all(), year=datetime.now().year)
+    try:
+        return dict(categories=Category.query.all(), year=datetime.now().year)
+    except:
+        return dict(categories=[], year=datetime.now().year)
 
 # Categories mặc định
 DEFAULT_CATEGORIES = [
@@ -52,7 +60,7 @@ TOPICS = [
 ]
 
 DISCLAIMER = """
-<p class="disclaimer"><strong>Lưu ý:</strong> Nội dung bài viết dựa trên quan niệm văn hóa và phong thủy truyền thống, mang tính tham khảo. 
+<p class=\"disclaimer\"><strong>Lưu ý:</strong> Nội dung bài viết dựa trên quan niệm văn hóa và phong thủy truyền thống, mang tính tham khảo. 
 Phong thủy không phải là khoa học đã được chứng minh. Không hứa hẹn chắc chắn về tài lộc, sức khỏe hay tình duyên. 
 Không thay thế tư vấn y tế, tài chính hoặc chuyên môn. Hãy tự cân nhắc trước khi áp dụng.</p>
 """
@@ -73,6 +81,13 @@ def init_db():
             Setting.set('daily_post_hour', '8')
             Setting.set('fb_check_interval_hours', '6')
         db.session.commit()
+
+# Initialize DB on startup (important for Gunicorn/Render)
+with app.app_context():
+    try:
+        init_db()
+    except Exception as e:
+        print(f"DB init warning: {e}")
 
 def generate_slug(title):
     return slugify(title, lowercase=True, separator='-')
@@ -305,6 +320,9 @@ def approve_comment(comment_id):
     db.session.commit()
     return redirect(url_for('admin_comments'))
 
+@app.errorhandler(500)
+def internal_error(error):
+    return "Internal Server Error - Vui lòng thử lại sau. Kiểm tra logs trên Render nếu cần.", 500
+
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
